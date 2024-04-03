@@ -1,0 +1,13 @@
+database:
+    host: 127.0.0.1:3306
+    user: root
+    password: dev
+    name: campy
+
+resend:
+    api_key: "123"
+    domain: http://localhost:3000
+
+jwt:
+    secret: secret
+    # expiration: 3600
