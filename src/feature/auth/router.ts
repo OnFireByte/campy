@@ -143,21 +143,17 @@ export const authRouter = new Elysia({
     .get(
         "me",
         async ({ user }) => {
-            return {
-                user: user!,
-            };
+            return user!;
         },
         {
             auth: ["user", "admin"],
             tags: ["Auth"],
             response: {
                 200: t.Object({
-                    user: t.Object({
                         id: t.Number(),
                         email: t.String(),
                         name: t.String(),
                         role: t.String(),
-                    }),
                 }),
             },
         }

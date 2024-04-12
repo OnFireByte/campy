@@ -48,7 +48,7 @@ export const authPlugin = new Elysia({ name: "auth-plugin" })
 
                 if (!roles.includes(user.role)) {
                     return error(403, {
-                        message: "Forbidden",
+                        message: "You don't have permission to access this resource",
                     });
                 }
             });
