@@ -1,0 +1,37 @@
+@startuml Manage Hospital (POST)
+
+header Campy Sequence Diagram
+footer Page %page% of %lastpage%
+title "Sign Up (POST)"
+
+participant "Client" as client
+participant "<<TypeScript>>\n:server" as server
+participant "<<router>>\n:auth" as router
+participant "<<controllers>>\n:auth" as service
+participant "<<service>>\n:resend" as resend
+participant "<<model>>\n:User" as userModel
+participant "<<model>>\n:EmailVerification" as emailModel
+database "<<MySQL>>\n:database" as db
+
+client->server ++:req.post('/auth/signup')
+server->router ++:app.use(authRouter)
+router -> service ++:signup()
+service->userModel ++:getUserByEmail(req.body.email)
+userModel ->db ++: Query
+db --> userModel --: user
+service <-- userModel --:user
+service->userModel ++:createUser()
+userModel ->db ++: Create user
+db --> userModel --: user
+service <-- userModel --:user
+service->service : generateToken()
+service->resend ++:sendEmailVerification(user.email, token)
+resend --> service --:status
+service->emailModel ++:createEmailVerification()
+emailModel ->db ++: Create email verification
+db --> emailModel --: email verification
+service <-- emailModel --:email verification
+service-->router --:response
+router->client --:response
+
+@enduml

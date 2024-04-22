@@ -1,0 +1,29 @@
+@startuml Manage Hospital (POST)
+
+header Campy Sequence Diagram
+footer Page %page% of %lastpage%
+title "Verify (GET)"
+
+participant "Client" as client
+participant "<<TypeScript>>\n:server" as server
+participant "<<router>>\n:auth" as router
+participant "<<controllers>>\n:auth" as service
+participant "<<model>>\n:User" as userModel
+participant "<<model>>\n:EmailVerification" as emailModel
+database "<<MySQL>>\n:database" as db
+
+client->server ++:req.post('/auth/email-confirmation/:token')
+server->router ++:app.use(authRouter)
+router -> service ++:verifyEmail()
+service->emailModel ++:GetTokenData(token)
+emailModel->db ++: Query
+db-->emailModel --: user id
+emailModel-->service --: user id
+service->userModel ++: Update user
+userModel->db ++: Update user
+db-->userModel --: status
+userModel-->service --: status
+service-->router --:response
+router->client --:response
+
+@enduml

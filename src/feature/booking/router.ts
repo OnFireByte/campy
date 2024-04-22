@@ -5,14 +5,14 @@ import { bookings } from "../../db/schema";
 import { authPlugin } from "../auth/plugin";
 
 export const bookingRouter = new Elysia({
-    prefix: "/booking",
+    prefix: "/bookings",
 })
     .use(authPlugin)
     .get(
         "/",
         async ({ user, error }) => {
             try {
-                if (user!.role !== "admin") {
+                if (user!.role === "admin") {
                     const allBooking = await db.query.bookings.findMany();
                     return {
                         bookings: allBooking,
@@ -59,7 +59,7 @@ export const bookingRouter = new Elysia({
     )
     .post(
         "/",
-        async ({ user, error, body }) => {
+        async ({ user, error, body, set }) => {
             const { campgroundID, date } = body;
             try {
                 const booked = await db.query.bookings.findMany({
@@ -78,6 +78,7 @@ export const bookingRouter = new Elysia({
                     date,
                 });
 
+                set.status = 201;
                 return (await db.query.bookings.findFirst({
                     where: (bk, { eq }) => eq(bk.id, booking[0].insertId),
                 }))!;
@@ -114,10 +115,9 @@ export const bookingRouter = new Elysia({
         "/:id",
         async ({ params, user, error }) => {
             try {
-                const parsedID = parseInt(params.id);
-
+                console.log(params.id, user!.id);
                 const booking = await db.query.bookings.findFirst({
-                    where: (booking, { eq }) => eq(booking.id, parsedID),
+                    where: (booking, { eq }) => eq(booking.id, params.id),
                 });
 
                 if (!booking) {
@@ -128,7 +128,7 @@ export const bookingRouter = new Elysia({
 
                 if (user!.role !== "admin" && booking.userID !== user!.id) {
                     return error(403, {
-                        message: "Booking not found",
+                        message: "You don't have permission to access this resource",
                     });
                 }
 
@@ -142,6 +142,9 @@ export const bookingRouter = new Elysia({
         {
             auth: ["admin", "user"],
             tags: ["Booking"],
+            params: t.Object({
+                id: t.Numeric(),
+            }),
             response: {
                 200: t.Object({
                     id: t.Number(),

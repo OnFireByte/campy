@@ -1,0 +1,25 @@
+@startuml Manage Hospital (POST)
+
+header Campy Sequence Diagram
+footer Page %page% of %lastpage%
+title "Sign In (POST)"
+
+participant "Client" as client
+participant "<<TypeScript>>\n:server" as server
+participant "<<router>>\n:auth" as router
+participant "<<controllers>>\n:auth" as service
+participant "<<model>>\n:User" as userModel
+database "<<MySQL>>\n:database" as db
+
+client->server ++:req.post('/auth/signin')
+server->router ++:app.use(authRouter)
+router -> service ++:signin()
+service->userModel ++:getUser(req.body.email)
+userModel ->db ++: Query
+db --> userModel --: user
+service <-- userModel --:user
+service -> service :comparePassword()
+service-->router --:response
+router->client --:response
+
+@enduml

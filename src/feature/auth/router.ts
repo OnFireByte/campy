@@ -4,7 +4,7 @@ import { Elysia, t } from "elysia";
 import { db } from "../../db/db";
 import { users } from "../../db/schema";
 import { authPlugin } from "./plugin";
-import { CreateUser, VerifyEmail } from "./service";
+import { VerifyEmail, createUser } from "./service";
 
 export const authRouter = new Elysia({
     prefix: "/auth",
@@ -12,7 +12,7 @@ export const authRouter = new Elysia({
     .use(authPlugin)
     .post(
         "/signup",
-        async ({ body, error }) => {
+        async ({ body, error, set }) => {
             const data = {
                 name: body.name,
                 email: body.email.toLowerCase(),
@@ -21,9 +21,20 @@ export const authRouter = new Elysia({
             };
 
             try {
-                await CreateUser(data);
+                const user = await db.query.users.findFirst({
+                    where: eq(users.email, data.email),
+                });
+
+                if (user) {
+                    return error(400, {
+                        message: "Email already exists",
+                    });
+                }
+
+                await createUser(data);
+                set.status = 201;
                 return {
-                    message: "Success",
+                    message: "Success, please check your email to verify your account",
                 };
             } catch (err) {
                 console.log(err);
@@ -42,10 +53,13 @@ export const authRouter = new Elysia({
             tags: ["Auth"],
             response: {
                 200: t.Object({
-                    message: t.String({ minLength: 1 }),
+                    message: t.String(),
+                }),
+                400: t.Object({
+                    message: t.String(),
                 }),
                 500: t.Object({
-                    message: t.String({ minLength: 1 }),
+                    message: t.String(),
                 }),
             },
         }
@@ -101,6 +115,12 @@ export const authRouter = new Elysia({
                     });
                 }
 
+                if (!data.verified) {
+                    return error(401, {
+                        message: "Please verify your email first",
+                    });
+                }
+
                 return {
                     message: "Success",
                     token: await jwt.sign({
@@ -150,10 +170,10 @@ export const authRouter = new Elysia({
             tags: ["Auth"],
             response: {
                 200: t.Object({
-                        id: t.Number(),
-                        email: t.String(),
-                        name: t.String(),
-                        role: t.String(),
+                    id: t.Number(),
+                    email: t.String(),
+                    name: t.String(),
+                    role: t.String(),
                 }),
             },
         }

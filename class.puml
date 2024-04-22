@@ -1,0 +1,98 @@
+@startuml
+left to right direction
+package "Campy"{
+    class "<<Application>>\nCampyService" as CampyService{}
+
+    class "<<Resource>>\nCampground" as ResourceCampgrounds {
+        <<GET>> +getCampgrounds():Campground
+        <<POST>> +createCampground():Campground
+    }
+
+    class "<<Resource>>\nCampground" as ResourceCampground {
+        <<GET>> +getCampground(): Campground
+        <<PUT>> +updateCampground(): Campground
+        <<DELETE>> +deleteCampground(): void
+    }
+
+    class "<<Representation>>\nCampground" as RepresentationCampground {
+        -id
+        -name
+        -address
+        -telephone
+    }
+
+    class "<<Resource>>\nBooking" as ResourceBookings {
+        <<GET>> +getBookings():Booking
+        <<POST>> +createCampground():Booking
+    }
+
+    class "<<Resource>>\nBooking" as ResourceBooking {
+        <<GET>> +getBooking(): Booking
+        <<PUT>> +updateBooking(): Booking
+        <<DELETE>> +deleteBooking(): void
+    }
+
+    class "<<Representation>>\nBooking" as RepresentationBooking {
+        -id
+        -date
+    }
+
+    class "<<Resource>>\nAuth" as ResourceAuths {
+    }
+
+    class "<<Resource>>\nMe" as ResourceMe {
+        <<GET>> +getMe(): User
+    }    
+
+    class "<<Resource>>\nSignUp" as ResourceSignUp {
+        <<POST>> +signUp(): User
+    }
+
+    class "<<Resource>>\nSignIn" as ResourceSignIn {
+        <<POST>> +signIn(): User
+    }
+
+    class "<<Resource>>\nVerification" as ResourceVerification {
+        <<GET>> +verifyEmail(): User
+    }
+
+    class "<<Representation>>\nUser" as RepresentationUser {
+        -id
+        -email
+        -password
+        -name
+        -telephone
+        -verified
+        -role
+    }
+
+    class "<<Representation>>\nVerificationToken" as RepresentationVerificationToken {
+        -token
+    }
+}
+
+CampyService ..> ResourceCampgrounds:"/campgrounds\n<<Path>>"
+ResourceCampgrounds ..> ResourceCampground: "/{CampgroundId}\n<<Path>>"
+ResourceCampground ..> RepresentationCampground: "<<use>>"
+
+CampyService ..> ResourceBookings:"/bookings\n<<Path>>"
+ResourceBookings ..> ResourceBooking: "/{BookingId}\n<<Path>>"
+ResourceBooking ..> RepresentationBooking: "<<use>>"
+
+CampyService ..> ResourceAuths:"/auth\n<<Path>>"
+ResourceAuths ..> ResourceSignUp: "/signup\n<<Path>>"
+ResourceAuths ..> ResourceSignIn: "/signin\n<<Path>>"
+ResourceAuths ..> ResourceVerification: "/verification/{Token}\n<<Path>>"
+ResourceAuths ..> ResourceMe: "/me\n<<Path>>"
+ResourceMe ..> RepresentationUser: "<<use>>"
+ResourceSignUp ..> RepresentationUser: "<<use>>"
+ResourceSignIn ..> RepresentationUser: "<<use>>"
+ResourceVerification ..> RepresentationUser: "<<use>>"
+ResourceVerification ..> RepresentationVerificationToken: "<<use>>"
+
+RepresentationUser "0..3"-->"1" RepresentationBooking: "book"
+RepresentationBooking "1"-->"1" RepresentationCampground: "at"
+RepresentationUser "1"*--"1" RepresentationVerificationToken: "has"
+
+
+@enduml

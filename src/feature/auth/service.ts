@@ -11,7 +11,17 @@ type CreateUserInput = {
     name: string;
     telephoneNumber: string;
 };
-export async function CreateUser(data: CreateUserInput) {
+
+function createToken(length: number) {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        result += charset[Math.floor(Math.random() * charset.length)];
+    }
+    return result;
+}
+
+export async function createUser(data: CreateUserInput) {
     const result = await db.transaction(async (tx) => {
         await tx.insert(users).values(data);
         const result = await tx.query.users.findFirst({
@@ -21,7 +31,8 @@ export async function CreateUser(data: CreateUserInput) {
             throw new Error("User not found");
         }
 
-        const token = Math.random().toString(36).substring(2);
+        const token = createToken(32);
+
         await tx.insert(emailVerifications).values({
             userID: result?.id,
             token: token,
@@ -59,6 +70,6 @@ export async function VerifyEmail(token: string) {
     });
 
     return {
-        message: "Email verified",
-    };
+        message: "Email verified, you can now sign in.",
+    } as const;
 }

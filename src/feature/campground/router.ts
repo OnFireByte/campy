@@ -84,7 +84,7 @@ export const campgroundsRouter = new Elysia({
     )
     .post(
         "/",
-        async ({ body, error }) => {
+        async ({ body, error, set }) => {
             try {
                 const value = {
                     name: body.name,
@@ -108,6 +108,7 @@ export const campgroundsRouter = new Elysia({
                     });
                 }
 
+                set.status = 201;
                 return {
                     message: "Campground created",
                     data: data,
